@@ -11,6 +11,7 @@
 var describe = require('./lib/describe');
 var parse = require('./lib/parser').parse;
 var stringify = require('./lib/stringify');
+var stringifyArrayFormatter = require('./lib/stringify-array-formatter');
 
 var typeExpressionCache = {
 	normal: {},
@@ -113,6 +114,21 @@ function cachedStringify(parsedType, options) {
 	}
 }
 
+function cachedStringifyArrayFormatter(parsedType, options) {
+	var cache = getParsedTypeCache(options);
+	var json;
+
+	if (canReturnOriginalExpression(parsedType, options)) {
+		return parsedType.typeExpression;
+	} else if (cache) {
+		json = JSON.stringify(parsedType);
+		cache[json] = cache[json] || stringifyArrayFormatter(parsedType, options);
+		return cache[json];
+	} else {
+		return stringifyArrayFormatter(parsedType, options);
+	}
+}
+
 function cachedDescribe(parsedType, options) {
 	var cache = getDescriptionCache(options);
 	var json;
@@ -150,6 +166,19 @@ Catharsis.prototype.stringify = function(parsedType, options) {
 	options = options || {};
 
 	result = cachedStringify(parsedType, options);
+	if (options.validate) {
+		this.parse(result, options);
+	}
+
+	return result;
+};
+
+Catharsis.prototype.stringifyEsri = function(parsedType, options) {
+	var result;
+
+	options = options || {};
+
+	result = cachedStringifyArrayFormatter(parsedType, options);
 	if (options.validate) {
 		this.parse(result, options);
 	}
