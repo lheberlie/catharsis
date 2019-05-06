@@ -1,5 +1,5 @@
 {
-  "version": "0.8.9-esri.1",
+  "version": "0.8.10-esri.2",
   "name": "catharsis",
   "description": "A JavaScript parser for Google Closure Compiler and JSDoc type expressions.",
   "author": "Jeff Williams <jeffrey.l.williams@gmail.com>",
@@ -10,20 +10,21 @@
   "bugs": "https://github.com/hegemonic/catharsis/issues",
   "main": "catharsis.js",
   "dependencies": {
-    "underscore-contrib": "~0.3.0"
+    "lodash": "^4.17.11"
   },
   "devDependencies": {
-    "mocha": "~2.0.1",
-    "pegjs": "https://github.com/dmajda/pegjs/tarball/eaca5f0acf97b66ef141fed84aa95d4e72e33757",
-    "should": "~4.0.4",
-    "tv4": "https://github.com/geraintluff/tv4/tarball/eb7561072d44943306e5fd88b55b4a4c98cb6c75"
+    "ajv": "^6.10.0",
+    "mocha": "^6.1.4",
+    "pegjs": "^0.10.0",
+    "should": "^13.2.3",
+    "should-equal": "^2.0.0"
   },
   "engines": {
-    "node": ">= 0.10"
+    "node": ">= 8"
   },
   "scripts": {
-    "prepublish": "./node_modules/pegjs/bin/pegjs ./lib/parser.pegjs",
-    "test": "mocha"
+    "prepare": "./node_modules/pegjs/bin/pegjs ./lib/parser.pegjs",
+    "test": "./node_modules/mocha/bin/mocha"
   },
   "license": "MIT"
 }

@@ -1,84 +1,81 @@
-/*global describe, it */
-'use strict';
+/* global describe, it */
+const _ = require('lodash');
+const Ajv = require('ajv');
+const helper = require('./helper');
+const parse = require('../lib/parser').parse;
+const path = require('path');
+const schema = require('../lib/schema');
+const util = require('util');
 
-var _ = require('underscore-contrib');
-var fs = require('fs');
-var helper = require('./helper');
-var parse = require('../lib/parser').parse;
-var path = require('path');
-var schema = require('../lib/schema');
-var should = require('should');
-var tv4 = require('tv4');
-var util = require('util');
-var validate = tv4.validateMultiple;
+const ajv = new Ajv({
+    allErrors: true,
+    ownProperties: true
+});
+const validate = ajv.compile(schema);
 
 function parseIt(item, options) {
-	var parsed;
+    let parsed;
 
-	try {
-		parsed = parse(item.expression, options);
-	} catch(e) {
-		throw new Error(util.format('unable to parse type expression "%s": %s', item.expression,
-			e.message));
-	}
+    try {
+        parsed = parse(item.expression, options);
+    } catch (e) {
+        throw new Error(util.format('unable to parse type expression "%s": %s', item.expression,
+            e.message));
+    }
 
-	if (!_.isEqual(parsed, item.parsed)) {
-		throw new Error(util.format('parse tree should be "%j", NOT "%j"', item.parsed, parsed));
-	}
+    if (!_.isEqual(parsed, item.parsed)) {
+        throw new Error(util.format('parse tree should be "%j", NOT "%j"', item.parsed, parsed));
+    }
 
-	return parsed;
+    return parsed;
 }
 
 function checkTypes(filepath, options) {
-	var types = require(filepath);
+    const types = require(filepath);
 
-	var errors = [];
-	var parsedType;
-	var parsedTypes = [];
-	var validationErrors = [];
-	var validationResult;
+    const errors = [];
+    let parsedType;
+    const validationErrors = [];
+    let validationResult;
 
-	types.forEach(function(type) {
-		try {
-			parsedType = parseIt(type, options);
-			validationResult = validate(parsedType, schema, { banUnknownProperties: true });
-			if (validationResult.errors && validationResult.errors.length) {
-				validationErrors.push({
-					expression: type.expression,
-					errors: validationResult.errors
-				});
-			}
-		} catch(e) {
-			errors.push(e.message);
-		}
-	});
+    types.forEach(type => {
+        try {
+            parsedType = parseIt(type, options);
+            validationResult = validate(parsedType);
+            if (validationResult === false) {
+                validationErrors.push({
+                    expression: type.expression,
+                    errors: validate.errors.slice(0)
+                });
+            }
+        } catch (e) {
+            errors.push(e.message);
+        }
+    });
 
-	errors.should.eql([]);
-	validationErrors.should.eql([]);
+    errors.should.eql([]);
+    validationErrors.should.eql([]);
 }
 
-describe('parser', function() {
-	describe('parse()', function() {
-		var specs = './test/specs';
-		var jsdocSpecs = path.join(specs, 'jsdoc');
+describe('parser', () => {
+    describe('parse()', () => {
+        const specs = './test/specs';
+        const jsdocSpecs = path.join(specs, 'jsdoc');
 
-		// register schema with the validator
-		tv4.addSchema(schema.id, schema);
+        function tester(specPath, basename) {
+            it(`can parse types in the "${basename}" spec`, () => {
+                checkTypes(path.join(specPath, basename), {});
+            });
+        }
 
-		function tester(specPath, basename) {
-			it('can parse types in the "' + basename + '" spec', function() {
-				checkTypes(path.join(specPath, basename), {});
-			});
-		}
+        function jsdocTester(specPath, basename) {
+            it(`can parse types in the "${basename}" spec when JSDoc type parsing is enabled`,
+                () => {
+                    checkTypes(path.join(specPath, basename), {jsdoc: true});
+                });
+        }
 
-		function jsdocTester(specPath, basename) {
-			it('can parse types in the "' + basename + '" spec when JSDoc type parsing is enabled',
-				function() {
-				checkTypes(path.join(specPath, basename), {jsdoc: true});
-			});
-		}
-
-		helper.testSpecs(specs, tester);
-		helper.testSpecs(jsdocSpecs, jsdocTester);
-	});
+        helper.testSpecs(specs, tester);
+        helper.testSpecs(jsdocSpecs, jsdocTester);
+    });
 });
