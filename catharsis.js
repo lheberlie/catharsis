@@ -104,25 +104,27 @@ function cachedStringify(parsedType, options) {
         return parsedType.typeExpression;
     } else if (cache) {
         json = JSON.stringify(parsedType);
-		cache[json] = cache[json] || stringify(parsedType, options);
-		return cache[json];
+		    cache[json] = cache[json] || stringify(parsedType, options);
+
+		    return cache[json];
 	} else {
-        cache[json] = cache[json] || stringify(parsedType, options);
+        return stringify(parsedType, options);
 	}
 }
 
 function cachedStringifyArrayFormatter(parsedType, options) {
-	var cache = getParsedTypeCache(options);
-	var json;
+	const cache = getParsedTypeCache(options);
+	let json;
 
 	if (canReturnOriginalExpression(parsedType, options)) {
-		return parsedType.typeExpression;
+		  return parsedType.typeExpression;
 	} else if (cache) {
-		json = JSON.stringify(parsedType);
-		cache[json] = cache[json] || stringifyArrayFormatter(parsedType, options);
-		return cache[json];
+		  json = JSON.stringify(parsedType);
+		  cache[json] = cache[json] || stringifyArrayFormatter(parsedType, options);
+
+		  return cache[json];
 	} else {
-		return stringifyArrayFormatter(parsedType, options);
+		  return stringifyArrayFormatter(parsedType, options);
 	}
 }
 
@@ -176,16 +178,16 @@ class Catharsis {
     }
 
     stringifyEsri(parsedType, options) {
-	  let result;
+	      let result;
 
-	  options = options || {};
+	      options = options || {};
 
-	  result = cachedStringifyArrayFormatter(parsedType, options);
-	  if (options.validate) {
-	    this.parse(result, options);
-	  }
+	      result = cachedStringifyArrayFormatter(parsedType, options);
+	      if (options.validate) {
+	        this.parse(result, options);
+	      }
 
-	  return result;
+	      return result;
     }
 }
 /* eslint-enable class-methods-use-this */
