@@ -10,6 +10,7 @@ const describe = require('./lib/describe');
 const { parse } = require('./lib/parser');
 const stringify = require('./lib/stringify');
 const stringifyArrayFormatter = require('./lib/stringify-array-formatter');
+
 const typeExpressionCache = {
     normal: {},
     jsdoc: {}
@@ -104,28 +105,34 @@ function cachedStringify(parsedType, options) {
         return parsedType.typeExpression;
     } else if (cache) {
         json = JSON.stringify(parsedType);
-		    cache[json] = cache[json] || stringify(parsedType, options);
+        cache[json] = cache[json] || stringify(parsedType, options);
 
-		    return cache[json];
-	} else {
+        return cache[json];
+    } else {
         return stringify(parsedType, options);
-	}
+    }
 }
 
+/**
+ * Custom function to support using stringify-array-formatter module.
+ * @param parsedType
+ * @param options
+ * @returns {string|*}
+ */
 function cachedStringifyArrayFormatter(parsedType, options) {
-	const cache = getParsedTypeCache(options);
-	let json;
+    const cache = getParsedTypeCache(options);
+    let json;
 
-	if (canReturnOriginalExpression(parsedType, options)) {
-		  return parsedType.typeExpression;
-	} else if (cache) {
-		  json = JSON.stringify(parsedType);
-		  cache[json] = cache[json] || stringifyArrayFormatter(parsedType, options);
+    if (canReturnOriginalExpression(parsedType, options)) {
+        return parsedType.typeExpression;
+    } else if (cache) {
+        json = JSON.stringify(parsedType);
+        cache[json] = cache[json] || stringifyArrayFormatter(parsedType, options);
 
-		  return cache[json];
-	} else {
-		  return stringifyArrayFormatter(parsedType, options);
-	}
+        return cache[json];
+    } else {
+        return stringifyArrayFormatter(parsedType, options);
+    }
 }
 
 function cachedDescribe(parsedType, options) {
@@ -174,20 +181,26 @@ class Catharsis {
     }
 
     describe(parsedType, options = {}) {
-      return cachedDescribe(parsedType, options);
+        return cachedDescribe(parsedType, options);
     }
 
+  /**
+   * Custom function to handle display of Array signatures.
+   * @param parsedType
+   * @param options
+   * @returns {*}
+   */
     stringifyEsri(parsedType, options) {
-	      let result;
+        let result;
 
-	      options = options || {};
+        options = options || {};
 
-	      result = cachedStringifyArrayFormatter(parsedType, options);
-	      if (options.validate) {
-	        this.parse(result, options);
-	      }
+        result = cachedStringifyArrayFormatter(parsedType, options);
+        if (options.validate) {
+            this.parse(result, options);
+        }
 
-	      return result;
+        return result;
     }
 }
 /* eslint-enable class-methods-use-this */
